@@ -36,7 +36,7 @@ def load_config():
         with open("config.json", "r") as f:
             return json.load(f)
     except FileNotFoundError:
-        return {"guilds": {}}  # Wenns die Config Datei nicht vorhanden ist wird eine Leere Config Liste erstellt
+        return {"guilds": {}}    # Wenns die Config Datei nicht vorhanden ist wird eine Leere Config Liste erstellt
 
 
 def save_config(data):
@@ -49,7 +49,7 @@ async def on_guild_join(guild):    #Wenn der Bot einem neuen Server beitritt wir
     guild_id = str(guild.id)
 
     if guild_id not in config["guilds"]:
-        config["guilds"][guild_id] = {"bad_word_blocker": True, "application_counter": 0, "application_notify_role": "", "application_message_channel": ""}
+        config["guilds"][guild_id] = {"count_to_100": 0}
         save_config(config)
         print(f'New guild added: {guild.name} (ID: {guild.id})')
 
@@ -85,8 +85,8 @@ async def on_ready(): # Wenn der Bot Startet werden folgende Sachen überprüft
             print(f'Added new guild to config: {guild.name} (ID: {guild.id})')
         else:
             if "count_to_100" not in config["guilds"][guild_id]:
-                config["guilds"][guild_id]["application_notify_role"] = 0
-                print(f"Added missing key 'application_notify_role' for guild {guild.name} (ID: {guild.id})")
+                config["guilds"][guild_id]["count_to_100"] = 0
+                print(f"Added missing key 'count_to_100' for guild {guild.name} (ID: {guild.id})")
 
 
     save_config(config)
