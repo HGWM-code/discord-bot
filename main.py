@@ -15,10 +15,6 @@ bot = commands.Bot(command_prefix="$", intents=intents)
 async def load_extensions():
     await bot.load_extension("commands.greeting") 
 
-@bot.event
-async def on_ready():
-    print(f'Bot ist eingeloggt als {bot.user}')
-
 async def main():
     async with bot:
         await load_extensions()
@@ -66,6 +62,10 @@ async def on_guild_remove(guild):     #Wenn der Bot einem Server verlässt wird 
 
 @bot.event
 async def on_ready(): # Wenn der Bot Startet werden folgende Sachen überprüft
+    
+    await bot.tree.sync() # synced alle application commands vom bot
+
+    print(f'Bot ist eingeloggt als {bot.user}')
 
     active_guilds = {str(guild.id) for guild in bot.guilds}
 
