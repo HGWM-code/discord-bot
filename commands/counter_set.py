@@ -3,7 +3,7 @@ from discord import app_commands
 import json
 import discord
 
-class greeting(commands.Cog):
+class counter_set(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -12,8 +12,9 @@ class greeting(commands.Cog):
 
     bot = commands.Bot(command_prefix="$", intents=intents)
 
-    @app_commands.command(name="greeting", description="Say hello!")
-    async def greeting(self, interaction):
+    @app_commands.command(name="set_counter", description="Set the counter to a specific value")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def set_counter(self, interaction, count: str):
         #############################################################
         #                                                           #
         #   Common setup for each Command interacting with Config   #
@@ -38,8 +39,13 @@ class greeting(commands.Cog):
         #               Command:s                #
         #                                        #
         ##########################################
+        
+        guild = interaction.guild
+        guild_id = str(guild.id)
 
-        await interaction.response.send_message("hello")
+        config["guilds"][guild_id]["count_to_100"] = int(count)
+        save_config(config)
+        await interaction.response.send_message(f"The counter was set to {count}")
 
 async def setup(bot):
-    await bot.add_cog(greeting(bot))
+    await bot.add_cog(counter_set(bot))

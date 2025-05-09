@@ -58,12 +58,13 @@ async def on_ready(): # Wenn der Bot Startet werden folgende Sachen überprüft
                 print(f"Added missing key 'count_to_100' for guild {guild.name} (ID: {guild.id})")
 
     save_config(config)
-config = load_config()
+    config = load_config()
 
 
 @bot.event
 async def on_guild_join(guild):    #Wenn der Bot einen Server joint
     
+    config = load_config()
     guild_id = str(guild.id)
 
     if guild_id not in config["guilds"]:
@@ -74,6 +75,8 @@ async def on_guild_join(guild):    #Wenn der Bot einen Server joint
 
 @bot.event
 async def on_guild_remove(guild):     #Wenn der Bot einen Server verlässt
+
+    config = load_config()
     guild_id = str(guild.id)
 
     if guild_id in config["guilds"]:
@@ -82,9 +85,57 @@ async def on_guild_remove(guild):     #Wenn der Bot einen Server verlässt
         print(f'Guild removed: {guild.name} (ID: {guild.id})')  #Wenn der Bot einem Server verlässt wird er von der JSON entfernt
 
 
-async def load_extensions(): # laden der Commands
+@bot.event
+async def on_message(message): 
+
+    if message.author.bot:
+        return
+    
+    guild = message.guild
+    guild_id = str(guild.id)
+
+    msg_content = message.content
+
+    if guild:
+        channel = discord.utils.get(guild.channels, name='count-to-100')
+        if message.channel == channel:
+            config = load_config()
+
+            if msg_content == "100" and str(config["guilds"][guild_id]["count_to_100"] + 1) == "100":
+                await message.add_reaction("✅")
+                await message.channel.send("🎉The counter has reached 100! Resetting the counter.🎉")
+
+                await asyncio.sleep(7)
+                await channel.purge(limit=150)
+
+                config["guilds"][guild_id]["count_to_100"] = 0
+                save_config(config)
+
+
+            elif msg_content == str(config["guilds"][guild_id]["count_to_100"] + 1):
+                config["guilds"][guild_id]["count_to_100"] += 1
+                save_config(config)
+                
+                await message.add_reaction("✅")
+
+            elif msg_content != str(config["guilds"][guild_id]["count_to_100"] + 1):
+                await message.channel.send(f"Wrong number! The next number should be {config['guilds'][guild_id]['count_to_100'] + 1}.")
+                await message.add_reaction("❌")
+
+                await asyncio.sleep(7)
+                await channel.purge(limit=150)
+
+                config["guilds"][guild_id]["count_to_100"] = 0
+                save_config(config)
+    
+    await bot.process_commands(message)
+
+
+async def load_extensions():    # laden der Commands
     await bot.load_extension("commands.greeting") 
     await bot.load_extension("commands.message_clear") 
+    await bot.load_extension("commands.counter_setup")
+    await bot.load_extension("commands.counter_set")
 
 async def main():
     async with bot:
